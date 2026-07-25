@@ -147,7 +147,9 @@ end
 -- ============================================================
 
 local function sanitizePathComponent(name)
-	return string.gsub(name, '[<>:"/\\|?*]', "_")
+	-- string.gsub returns 2 values (result + count), so we wrap it
+	local result = string.gsub(name, '[<>:"/\\|?*]', "_")
+	return result
 end
 
 local function ensureDir(dirPath)
@@ -173,7 +175,8 @@ local function getScriptFilePath(instance, baseDir)
 	local pathParts = {}
 	local current = instance
 	while current and current ~= game do
-		table.insert(pathParts, 1, sanitizePathComponent(current.Name))
+		local name = sanitizePathComponent(current.Name)
+		table.insert(pathParts, 1, name)
 		current = current.Parent
 	end
 
@@ -194,7 +197,6 @@ local decompile
 local decompileTimeout = 10
 local scriptCache = {}
 local scriptCacheEnabled = true
-local bytecodeCache = {}
 
 -- Decompilation with timeout
 local function decompileWithTimeout(script)
