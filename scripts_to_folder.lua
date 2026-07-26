@@ -171,11 +171,30 @@ local function getScriptExtension(instance)
 	end
 end
 
+-- Known Roblox services that should use their class name instead of instance name
+local KNOWN_SERVICES = {
+	Workspace = true, Players = true, Lighting = true, MaterialService = true,
+	ReplicatedFirst = true, ReplicatedStorage = true,
+	ServerScriptService = true, ServerStorage = true,
+	StarterGui = true, StarterPack = true, StarterPlayer = true,
+	Teams = true, SoundService = true, Chat = true, TextChatService = true,
+	LocalizationService = true, JointsService = true,
+	InsertService = true, TestService = true, VoiceChatService = true,
+	CoreGui = true, CorePackages = true,
+}
+
 local function getScriptFilePath(instance, baseDir)
 	local pathParts = {}
 	local current = instance
 	while current and current ~= game do
-		local name = sanitizePathComponent(current.Name)
+		local name
+		-- If this is a direct child of game and is a known service,
+		-- use the class name instead of the (potentially renamed) instance name
+		if current.Parent == game and KNOWN_SERVICES[current.ClassName] then
+			name = current.ClassName
+		else
+			name = sanitizePathComponent(current.Name)
+		end
 		table.insert(pathParts, 1, name)
 		current = current.Parent
 	end
